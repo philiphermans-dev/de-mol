@@ -491,7 +491,7 @@ const ROUNDS = {
     questions: [
       {id:'r1q1', label:'Wie is de mol?', type:'dropdown', options:PLAYERS, noPassvraag:true},
       {id:'r1q2', label:'Is de mol een man of een vrouw?', type:'radio2', options:['Man','Vrouw']},
-      {id:'r1q3', label:'Welke opdracht had de mol tijdens het aperitief?', type:'dropdown', options:['Gebruik het woord \'eigenlijk\' minstens 10x','Sta minstens 7x op zonder reden','Raak minstens 10x je haar aan','Stel minstens 7x dezelfde vraag anders verwoord','Verwerk minstens 8x een kleur in een zin','Zeg minstens 8x \'da\'s waar\'','Geef minstens 2 complimenten']},
+      {id:'r1q3', label:'Welke opdracht had de mol tijdens het aperitief?', type:'dropdown', options:['Gebruik het woord \'eigenlijk\' minstens 10x','Sta minstens 7x op zonder reden','Raak minstens 10x je haar aan','Stel minstens 7x dezelfde vraag anders verwoord','Verwerk minstens 8x een kleur in een zin','Zeg minstens 8x \'da\'s waar\'','Geef minstens 7 complimenten']},
       {id:'r1q4', label:'Welke kleur draagt de mol bovenaan?', type:'text'},
       {id:'r1q5', label:'Heeft de mol tijdens het aperitief iets laten morsen?', type:'radio2', options:['Ja','Nee']},
       {id:'r1q6', label:'Heeft de mol meer of minder dan 2 glazen gedronken tijdens het aperitief?', type:'radio2', options:['Meer','Minder']},
@@ -1082,10 +1082,13 @@ function renderModRounds(){
     card.className = 'round-card';
     card.innerHTML = `<div class="round-header">
       <span class="round-title">${rlabels[i]}</span>
-      ${unlocked
-        ? '<span class="badge badge-green">✓ Open</span>'
-        : `<button class="btn btn-secondary btn-sm" style="width:auto;padding:8px 16px" onclick="unlockRound('${rk}')">Ontgrendelen</button>`
-      }
+      <div style="display:flex;gap:8px;align-items:center">
+        ${unlocked
+          ? `<span class="badge badge-green">✓ Open</span>
+             <button class="btn btn-ghost btn-sm" style="width:auto;padding:8px 12px;font-size:12px" onclick="lockRound('${rk}')">🔒 Blokkeren</button>`
+          : `<button class="btn btn-secondary btn-sm" style="width:auto;padding:8px 16px" onclick="unlockRound('${rk}')">Ontgrendelen</button>`
+        }
+      </div>
     </div>`;
     wrap.appendChild(card);
   });
@@ -1099,6 +1102,16 @@ function unlockRound(rk){
     renderModRounds();
     notify(`${ROUNDS[rk].label} ontgrendeld!`);
   }
+}
+
+function lockRound(rk){
+  if(!confirm(`${ROUNDS[rk].label} terug blokkeren? Ingediende antwoorden blijven bewaard.`)) return;
+  state.unlockedRounds = state.unlockedRounds.filter(r => r !== rk);
+  // Also clear released results for this round so players go back to waiting
+  if(state.resultsReleased) state.resultsReleased[rk] = false;
+  saveState();
+  renderModRounds();
+  notify(`${ROUNDS[rk].label} geblokkeerd.`);
 }
 
 function refreshModSubmissions(){
