@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>De Mol — Diner Editie</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --gold:#C9A84C;--gold-light:#E8C97A;--gold-dim:#8A6E32;
+  --bg:#0A0A0A;--bg2:#111111;--bg3:#1A1A1A;--bg4:#222222;
+  --text:#F0EDE6;--text2:#A89E8A;--text3:#5A5248;
+  --red:#C0392B;--red-light:#E74C3C;--green:#1E8449;--green-light:#27AE60;
+  --border:rgba(201,168,76,0.15);--border-strong:rgba(201,168,76,0.4);
+  --radius:12px;--radius-sm:8px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+#app{min-height:100vh;display:flex;flex-direction:column}
+.screen{display:none;flex-direction:column;min-height:100vh;padding:0;animation:fadeIn .35s ease}
+.screen.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* TOP BAR */
+.topbar{padding:20px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:15px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.topbar-sub{font-size:12px;color:var(--text2);letter-spacing:1px}
+.topbar-right{text-align:right}
+
+/* CONTENT */
+.content{flex:1;padding:24px 20px;display:flex;flex-direction:column;gap:20px}
+.content-center{align-items:center;justify-content:center;text-align:center}
+
+/* TYPOGRAPHY */
+h1{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--gold);line-height:1.1}
+h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold);line-height:1.2}
+h3{font-size:14px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2)}
+p{font-size:15px;color:var(--text2);line-height:1.6}
+.eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);font-weight:500}
+
+/* CARDS */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.card-gold{border-color:var(--border-strong)}
+
+/* BUTTONS */
+.btn{display:block;width:100%;padding:16px 20px;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;text-align:center;cursor:pointer;border:none;transition:all .2s ease;letter-spacing:.3px}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);color:#0A0A0A}
+.btn-primary:disabled{background:var(--bg4);color:var(--text3);cursor:not-allowed}
+.btn-secondary{background:transparent;border:1px solid var(--border-strong);color:var(--gold)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-danger{background:transparent;border:1px solid rgba(192,57,43,0.4);color:var(--red-light)}
+.btn-success{background:var(--green);color:#fff}
+.btn-sm{padding:10px 16px;font-size:14px;border-radius:var(--radius-sm)}
+
+/* FORM ELEMENTS */
+.form-group{display:flex;flex-direction:column;gap:8px}
+.form-label{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.3px}
+.form-label span{color:var(--gold-dim);font-size:11px;margin-left:6px}
+select,input[type=text],input[type=number]{
+  width:100%;padding:14px 16px;background:var(--bg4);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:15px;appearance:none;-webkit-appearance:none;outline:none;
+  transition:border-color .2s
+}
+select:focus,input:focus{border-color:var(--gold)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23A89E8A' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+select option{background:var(--bg3)}
+
+/* RADIO GROUPS */
+.radio-group{display:grid;gap:10px}
+.radio-group.cols2{grid-template-columns:1fr 1fr}
+.radio-group.cols3{grid-template-columns:1fr 1fr 1fr}
+.radio-group.cols4{grid-template-columns:1fr 1fr 1fr 1fr}
+.radio-option{position:relative}
+.radio-option input{position:absolute;opacity:0;width:0;height:0}
+.radio-option label{
+  display:flex;align-items:center;justify-content:center;
+  padding:14px 8px;background:var(--bg4);border:1px solid var(--border);
+  border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-weight:500;
+  text-align:center;transition:all .2s;line-height:1.2;min-height:48px
+}
+.radio-option input:checked + label{background:rgba(201,168,76,0.12);border-color:var(--gold);color:var(--gold)}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);width:100%}
+
+/* STATUS BADGES */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.badge-gold{background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.25)}
+.badge-red{background:rgba(192,57,43,0.12);color:var(--red-light);border:1px solid rgba(192,57,43,0.25)}
+.badge-green{background:rgba(30,132,73,0.12);color:var(--green-light);border:1px solid rgba(30,132,73,0.25)}
+.badge-gray{background:var(--bg4);color:var(--text2);border:1px solid var(--border)}
+
+/* PLAYER LIST */
+.player-list{display:flex;flex-direction:column;gap:8px}
+.player-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg4);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.player-name{font-size:14px;font-weight:500}
+
+/* PASKVRAAG SELECTOR */
+.pasv-row{display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(201,168,76,0.06);border:1px solid var(--border-strong);border-radius:var(--radius-sm)}
+.pasv-counter{display:flex;align-items:center;gap:12px}
+.pasv-btn{width:36px;height:36px;border-radius:50%;background:var(--bg4);border:1px solid var(--border-strong);color:var(--gold);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pasv-btn:active{transform:scale(0.9)}
+.pasv-num{font-size:22px;font-weight:700;color:var(--gold);min-width:28px;text-align:center}
+
+/* RESULT INDICATOR */
+.result-circle{width:180px;height:180px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;position:relative}
+.result-circle.red{background:radial-gradient(circle at 38% 32%,#FF6B5B,#8B0000);box-shadow:0 0 80px rgba(231,76,60,0.6),0 0 30px rgba(231,76,60,0.3)}
+.result-circle.green{background:radial-gradient(circle at 38% 32%,#4CD97A,#0A4020);box-shadow:0 0 80px rgba(46,204,113,0.5),0 0 30px rgba(46,204,113,0.25)}
+.result-circle.neutral{background:var(--bg4);border:2px solid var(--border-strong)}
+
+/* Countdown ring */
+.result-countdown-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:220px;border-radius:50%;pointer-events:none}
+.result-countdown-ring svg{width:220px;height:220px;transform:rotate(-90deg)}
+.countdown-track{fill:none;stroke:rgba(201,168,76,0.12);stroke-width:3}
+.countdown-progress{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;stroke-dasharray:628;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear}
+
+/* Countdown number overlay */
+.countdown-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Playfair Display',serif;font-size:72px;font-weight:900;color:var(--gold);text-shadow:0 0 40px rgba(201,168,76,0.5);opacity:0;transition:opacity .2s}
+.countdown-num.show{opacity:1}
+
+/* Question mark while hidden */
+.result-circle-qmark{font-family:'Playfair Display',serif;font-size:80px;color:var(--gold-dim);line-height:1}
+
+/* Reveal animations */
+@keyframes circleAppear{0%{transform:scale(0.3);opacity:0}60%{transform:scale(1.12)}80%{transform:scale(0.95)}100%{transform:scale(1);opacity:1}}
+@keyframes pulseContinuous{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes flashIn{0%{opacity:0}100%{opacity:1}}
+@keyframes labelSlideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pasvSlideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.result-circle.revealed{animation:circleAppear .6s cubic-bezier(.34,1.56,.64,1) forwards, pulseContinuous 2.5s ease 1s infinite}
+#result-circle-label.visible{animation:labelSlideUp .5s ease forwards}
+#result-pasv-card.visible{animation:pasvSlideUp .5s ease forwards}
+#result-back-btn.visible{animation:flashIn .4s ease forwards}
+
+/* Fullscreen overlay for suspense */
+.reveal-overlay{position:fixed;inset:0;background:#000;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;opacity:0;pointer-events:none;transition:opacity .4s}
+.reveal-overlay.active{opacity:1;pointer-events:all}
+.reveal-overlay h2{font-family:'Playfair Display',serif;font-size:24px;color:var(--gold);text-align:center;opacity:0;transition:opacity .5s .3s}
+.reveal-overlay.active h2{opacity:1}
+.reveal-timer-text{font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--text3)}
+
+/* TABS (MOD) */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:12px 8px;text-align:center;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ROUND CARD */
+.round-card{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+.round-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;background:var(--bg3)}
+.round-title{font-size:15px;font-weight:600}
+.round-locked{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+
+/* MOD score table */
+.score-table{width:100%;border-collapse:collapse;font-size:13px}
+.score-table th{text-align:left;padding:8px 6px;color:var(--text2);font-weight:500;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.score-table td{padding:10px 6px;border-bottom:1px solid var(--border)}
+.score-table tr:last-child td{border-bottom:none}
+.score-highlight{font-weight:700;color:var(--gold)}
+
+/* Notification */
+.notif{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:12px 20px;font-size:14px;color:var(--gold);z-index:999;animation:notifIn .3s ease;white-space:nowrap;pointer-events:none}
+@keyframes notifIn{from{opacity:0;top:0}to{opacity:1;top:16px}}
+
+/* Section title in quiz */
+.section-title{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.section-line{flex:1;height:1px;background:var(--border)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════════════════ LOGIN SCREEN ═══════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">De Mol</div>
+      <div class="topbar-sub" style="margin-top:2px">Diner Editie</div>
+    </div>
+    <div style="font-size:28px">🕵️</div>
+  </div>
+  <div class="content content-center" style="gap:32px">
+    <div>
+      <div class="eyebrow" style="margin-bottom:12px">Wie ben jij?</div>
+      <h1>Kies jouw naam</h1>
+    </div>
+    <div style="width:100%;display:flex;flex-direction:column;gap:10px" id="player-buttons"></div>
+    <div class="divider"></div>
+    <div style="width:100%;display:flex;flex-direction:column;gap:10px">
+      <input type="password" id="mod-code-input" placeholder="Moderatorcode..." style="text-align:center;letter-spacing:4px">
+      <button class="btn btn-ghost" onclick="modLogin()">Inloggen als moderator</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ LOBBY SCREEN ═══════════════════════ -->
+<div id="screen-lobby" class="screen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">De Mol</div>
+      <div class="topbar-sub" id="lobby-playername">—</div>
+    </div>
+    <div>
+      <div class="eyebrow" style="text-align:right">Pasvragen</div>
+      <div style="font-size:20px;font-weight:700;color:var(--gold);text-align:right" id="lobby-pasv">0</div>
+    </div>
+  </div>
+  <div class="content" style="gap:16px">
+    <div>
+      <h2>Rondes</h2>
+      <p style="margin-top:6px">Wacht tot de moderator een ronde opent.</p>
+    </div>
+    <div id="lobby-rounds" style="display:flex;flex-direction:column;gap:10px"></div>
+    <div id="lobby-result-btn" style="display:none;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ QUIZ SCREEN ═══════════════════════ -->
+<div id="screen-quiz" class="screen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo" id="quiz-round-title">Ronde 1</div>
+      <div class="topbar-sub" id="quiz-playername">—</div>
+    </div>
+    <div>
+      <div class="eyebrow" style="text-align:right">Pasvragen</div>
+      <div style="font-size:20px;font-weight:700;color:var(--gold);text-align:right" id="quiz-pasv-display">0</div>
+    </div>
+  </div>
+  <div class="content" style="gap:20px">
+    <div id="quiz-pasv-selector" class="pasv-row" style="display:none">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--gold)">Pasvragen gebruiken</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Max. 2 per ronde · Vraag 1 uitgesloten</div>
+      </div>
+      <div class="pasv-counter">
+        <button class="pasv-btn" onclick="changePasv(-1)">−</button>
+        <span class="pasv-num" id="pasv-use-num">0</span>
+        <button class="pasv-btn" onclick="changePasv(1)">+</button>
+      </div>
+    </div>
+    <div id="quiz-questions" style="display:flex;flex-direction:column;gap:18px"></div>
+    <button class="btn btn-primary" id="quiz-submit-btn" onclick="submitQuiz()">Antwoorden indienen</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ WAITING SCREEN ═══════════════════════ -->
+<div id="screen-waiting" class="screen">
+  <div class="content content-center" style="gap:28px">
+    <div style="font-size:56px">⌛</div>
+    <div>
+      <h2>Antwoorden ingediend!</h2>
+      <p style="margin-top:8px">Wachten op andere kandidaten...</p>
+    </div>
+    <div id="waiting-submissions" class="card card-gold" style="width:100%"></div>
+    <p style="font-size:13px;color:var(--text3)">De moderator stuurt straks de resultaten.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════ REVEAL OVERLAY ═══════════════════════ -->
+<div id="reveal-overlay" class="reveal-overlay">
+  <div style="text-align:center">
+    <div class="eyebrow" id="reveal-round-label" style="margin-bottom:12px">Ronde 1</div>
+    <h2 id="reveal-player-label">—</h2>
+  </div>
+  <div style="position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center">
+    <div class="result-countdown-ring">
+      <svg viewBox="0 0 220 220"><circle class="countdown-track" cx="110" cy="110" r="100"/><circle class="countdown-progress" id="countdown-arc" cx="110" cy="110" r="100"/></svg>
+    </div>
+    <div class="result-circle neutral" id="reveal-circle" style="width:180px;height:180px">
+      <span class="result-circle-qmark" id="reveal-qmark">?</span>
+    </div>
+    <div class="countdown-num" id="countdown-num">3</div>
+  </div>
+  <div class="reveal-timer-text" id="reveal-timer-text">Jouw resultaat wordt onthuld...</div>
+</div>
+
+<!-- ═══════════════════════ RESULT SCREEN ═══════════════════════ -->
+<div id="screen-result" class="screen">
+  <div class="content content-center" style="gap:28px">
+    <div>
+      <div class="eyebrow" id="result-round-label">Ronde 1</div>
+      <h2 style="margin-top:8px" id="result-player-name">—</h2>
+    </div>
+    <div id="result-circle-wrap" style="position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center;margin:0 auto">
+      <div class="result-circle" id="result-circle" style="width:180px;height:180px"></div>
+    </div>
+    <div id="result-circle-label" style="font-size:16px;color:var(--text2);text-align:center;opacity:0"></div>
+    <div id="result-pasv-card" class="card card-gold" style="width:100%;text-align:center;opacity:0">
+      <div class="eyebrow">Resterende pasvragen</div>
+      <div style="font-size:36px;font-weight:700;color:var(--gold);margin-top:8px" id="result-pasv">0</div>
+    </div>
+    <button id="result-back-btn" class="btn btn-ghost" style="opacity:0" onclick="goLobby()">← Terug naar overzicht</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MOD DASHBOARD ═══════════════════════ -->
+<div id="screen-mod" class="screen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">De Mol</div>
+      <div class="topbar-sub">Moderator Dashboard</div>
+    </div>
+    <div style="font-size:22px">🔐</div>
+  </div>
+  <div class="tabs" id="mod-tabs">
+    <div class="tab active" onclick="modTab('rounds')">Rondes</div>
+    <div class="tab" onclick="modTab('scoring')">Scoring</div>
+    <div class="tab" onclick="modTab('leaderboard')">Klassement</div>
+  </div>
+
+  <!-- TAB: ROUNDS -->
+  <div id="mod-tab-rounds" class="content" style="gap:16px">
+    <div>
+      <h3>Rondes beheren</h3>
+      <p style="margin-top:4px;font-size:13px">Ontgrendel rondes één voor één voor alle spelers.</p>
+    </div>
+    <div id="mod-rounds-list" style="display:flex;flex-direction:column;gap:10px"></div>
+    <div class="divider"></div>
+    <div>
+      <h3 style="margin-bottom:12px">Pasvragen toewijzen</h3>
+      <div class="eyebrow" style="margin-bottom:8px">Aan welke speler? Voor welke ronde?</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <select id="pasv-assign-player"><option value="">Kies speler...</option></select>
+        <select id="pasv-assign-round">
+          <option value="r1">Na Ronde 1</option>
+          <option value="r2">Na Ronde 2</option>
+          <option value="r3">Na Ronde 3</option>
+          <option value="r4">Na Slotquiz</option>
+        </select>
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="number" id="pasv-assign-num" min="0" max="5" value="1" style="flex:1">
+          <button class="btn btn-secondary btn-sm" style="width:auto;padding:12px 20px" onclick="assignPasvragen()">Toewijzen</button>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div>
+      <h3 style="margin-bottom:12px">Ingediend door</h3>
+      <div id="mod-submission-status" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    <div class="divider"></div>
+    <div>
+      <h3 style="margin-bottom:8px;color:var(--red-light)">Gevaarzone</h3>
+      <button class="btn btn-danger" onclick="resetGame()">🗑 Spel volledig resetten</button>
+    </div>
+  </div>
+
+  <!-- TAB: SCORING -->
+  <div id="mod-tab-scoring" class="content" style="gap:16px;display:none">
+    <div style="display:flex;gap:10px;align-items:center">
+      <select id="scoring-round-select" onchange="loadScoringForm()" style="flex:1">
+        <option value="r1">Ronde 1</option>
+        <option value="r2">Ronde 2</option>
+        <option value="r3">Ronde 3</option>
+        <option value="r4">Slotquiz</option>
+      </select>
+    </div>
+    <div id="mod-scoring-form" style="display:flex;flex-direction:column;gap:16px"></div>
+    <button class="btn btn-primary" onclick="saveCorrectAnswers()">Antwoorden opslaan & scoren</button>
+    <button class="btn btn-success" onclick="sendResults()">📣 Resultaten versturen</button>
+  </div>
+
+  <!-- TAB: LEADERBOARD -->
+  <div id="mod-tab-leaderboard" class="content" style="gap:16px;display:none">
+    <h3>Volledig klassement</h3>
+    <div id="mod-leaderboard-table" style="overflow-x:auto"></div>
+    <div class="divider"></div>
+    <div id="mod-leaderboard-detail" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ═══════════════════════ CONSTANTS ═══════════════════════
+
+const PLAYERS = ['Ann-Catherine','Elvire','Jeff','Kim','Luce','Maarten','Nicholas'];
+const MOD_CODE = 'hoboreizen';
+const THE_MOLE = 'Nicholas'; // NOOIT tonen aan spelers
+
+const ROUNDS = {
+  r1: {
+    label: 'Ronde 1',
+    sub: 'Na het aperitief',
+    questions: [
+      {id:'r1q1', label:'Wie is de mol?', type:'dropdown', options:PLAYERS, noPassvraag:true},
+      {id:'r1q2', label:'Is de mol een man of een vrouw?', type:'radio2', options:['Man','Vrouw']},
+      {id:'r1q3', label:'Welke opdracht had de mol tijdens het aperitief?', type:'dropdown', options:['Gebruik het woord \'eigenlijk\' minstens 10x','Sta minstens 7x op zonder reden','Raak minstens 10x je haar aan','Stel minstens 7x dezelfde vraag anders verwoord','Verwerk minstens 8x een kleur in een zin','Zeg minstens 8x \'da\'s waar\'','Geef minstens 2 complimenten']},
+      {id:'r1q4', label:'Welke kleur draagt de mol bovenaan?', type:'text'},
+      {id:'r1q5', label:'Heeft de mol tijdens het aperitief iets laten morsen?', type:'radio2', options:['Ja','Nee']},
+      {id:'r1q6', label:'Heeft de mol meer of minder dan 2 glazen gedronken tijdens het aperitief?', type:'radio2', options:['Meer','Minder']},
+      {id:'r1q7', label:'Heeft de mol tijdens het aperitief iemand beschuldigd van een opdracht?', type:'radio2', options:['Ja','Nee']},
+    ]
+  },
+  r2: {
+    label: 'Ronde 2',
+    sub: 'Na de 3 drankjes',
+    questions: [
+      {id:'r2q1', label:'Wie is de mol?', type:'dropdown', options:PLAYERS, noPassvraag:true},
+      {id:'r2q2', label:'Is de mol een man of een vrouw?', type:'radio2', options:['Man','Vrouw']},
+      {id:'r2q3', label:'Wat dronk de mol bij shot 1?', type:'radio2', options:['Vodka','Water']},
+      {id:'r2q4', label:'Heeft de mol tijdens de drankjesronde iemand anders verdacht gemaakt?', type:'radio2', options:['Ja','Nee']},
+      {id:'r2q5', label:'Wat was de gezichtsuitdrukking van de mol bij shot 3?', type:'radio3', options:['Geen reactie','Lichte reactie','Sterke reactie']},
+      {id:'r2q6', label:'In welke volgorde dronk de mol zijn shot bij shot 1?', type:'radio3', options:['Eerste','Midden','Laatste']},
+      {id:'r2q7', label:'Wie zit er links van de mol aan tafel?', type:'dropdown', options:PLAYERS},
+      {id:'r2q8', label:'Wie zit er rechts van de mol aan tafel?', type:'dropdown', options:PLAYERS},
+    ]
+  },
+  r3: {
+    label: 'Ronde 3',
+    sub: 'Na de anekdotes',
+    questions: [
+      {id:'r3q1', label:'Wie is de mol?', type:'dropdown', options:PLAYERS, noPassvraag:true},
+      {id:'r3q2', label:'Is de mol een man of een vrouw?', type:'radio2', options:['Man','Vrouw']},
+      {id:'r3q3', label:'Hoeveel anekdotes van de mol waren echt waar?', type:'radio4', options:['0','1','2','3']},
+      {id:'r3q4', label:'Stelde de mol bij zijn/haar vraag een vraag over een detail of over de kern?', type:'radio2', options:['Detail','Kern']},
+      {id:'r3q5', label:'Heeft de mol bij zijn/haar anekdotes namen van mensen genoemd?', type:'radio2', options:['Ja','Nee']},
+      {id:'r3q6', label:'Heeft de mol tijdens zijn/haar anekdotes aan het gezicht gezeten?', type:'radio2', options:['Ja','Nee']},
+      {id:'r3q7', label:'Heeft de mol tijdens zijn/haar beurt zijn/haar armen over elkaar gedaan?', type:'radio2', options:['Ja','Nee']},
+    ]
+  },
+  r4: {
+    label: 'Slotquiz',
+    sub: 'Bij dessert',
+    questions: [
+      {id:'r4q1', label:'Wie is de mol?', type:'dropdown', options:PLAYERS, noPassvraag:true},
+      {id:'r4q2', label:'Hoeveel sabotages heeft de mol uitgevoerd tijdens het aperitief?', type:'number'},
+      {id:'r4q3', label:'Welke kleur had de drank van de mol bij shot 2?', type:'text'},
+      {id:'r4q4', label:'Wie zat er rechts van de mol tijdens het aperitief?', type:'dropdown', options:PLAYERS},
+      {id:'r4q5', label:'Hoeveel anekdotes vertelde de mol echt waar?', type:'radio4', options:['0','1','2','3']},
+      {id:'r4q6', label:'Wat was de eerste opdracht die de mol uitvoerde?', type:'radio2', options:['Sabotage','Compliment']},
+      {id:'r4q7', label:'Wat is de hoofdkleur van de schoenen van de mol?', type:'text'},
+      {id:'r4q8', label:'Schiftingsvraag: Hoeveel seconden duurde de eerste anekdote van de mol?', type:'number', isSchifting:true},
+    ]
+  }
+};
+
+// ═══════════════════════ STATE ═══════════════════════
+
+function defaultState(){
+  const players = {};
+  PLAYERS.forEach(p => {
+    players[p] = {
+      pasvragen: 0,
+      submissions: {},
+    };
+  });
+  return {
+    unlockedRounds: [],
+    resultsReleased: {},
+    players,
+    correctAnswers: {},
+    scores: {},
+    results: {},
+  };
+}
+
+// ═══════════════════════ FIREBASE ═══════════════════════
+
+let db = null;
+let firebaseReady = false;
+
+function initFirebase(){
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
+    script.onload = () => {
+      const script2 = document.createElement('script');
+      script2.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js';
+      script2.onload = () => {
+        const firebaseConfig = {
+          apiKey: "AIzaSyBMuRqPxQHz8ARukTYvuG26Qql_JVpqLDY",
+          authDomain: "de-mol-diner.firebaseapp.com",
+          databaseURL: "https://de-mol-diner-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "de-mol-diner",
+          storageBucket: "de-mol-diner.firebasestorage.app",
+          messagingSenderId: "1072639263276",
+          appId: "1:1072639263276:web:62921e9c54ae2ff83d0789"
+        };
+        if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        firebaseReady = true;
+        resolve();
+      };
+      document.head.appendChild(script2);
+    };
+    document.head.appendChild(script);
+  });
+}
+
+function saveState(){
+  if(!firebaseReady) return;
+  db.ref('gameState').set(state);
+}
+
+function subscribeToState(callback){
+  db.ref('gameState').on('value', snap => {
+    const val = snap.val();
+    if(val){
+      state = val;
+      // Normalize unlockedRounds: Firebase may return object instead of array
+      if(!state.unlockedRounds) state.unlockedRounds = [];
+      else if(!Array.isArray(state.unlockedRounds)) state.unlockedRounds = Object.values(state.unlockedRounds);
+      // Ensure player structure is complete
+      if(!state.players) state.players = {};
+      PLAYERS.forEach(p => {
+        if(!state.players[p]) state.players[p] = {pasvragen:0,submissions:{}};
+        if(!state.players[p].submissions) state.players[p].submissions = {};
+      });
+      if(!state.correctAnswers) state.correctAnswers = {};
+      if(!state.scores) state.scores = {};
+      if(!state.results) state.results = {};
+      if(!state.resultsReleased) state.resultsReleased = {};
+    } else {
+      state = defaultState();
+      saveState();
+    }
+    callback();
+  });
+}
+
+let state = defaultState();
+let currentPlayer = null;
+let isMod = false;
+let currentRound = null;
+let pasvUsed = 0;
+
+// ═══════════════════════ UTILS ═══════════════════════
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function notify(msg){
+  const existing = document.querySelector('.notif');
+  if(existing) existing.remove();
+  const el = document.createElement('div');
+  el.className='notif';
+  el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2500);
+}
+
+function getPlayerPasvragen(player){
+  return state.players[player]?.pasvragen || 0;
+}
+
+function getRoundKey(idx){ return ['r1','r2','r3','r4'][idx]; }
+
+// ═══════════════════════ LOGIN ═══════════════════════
+
+function initLoginButtons(){
+  const wrap = document.getElementById('player-buttons');
+  wrap.innerHTML = '';
+  PLAYERS.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-secondary';
+    btn.textContent = p;
+    btn.onclick = () => playerLogin(p);
+    wrap.appendChild(btn);
+  });
+
+  const modSel = document.getElementById('pasv-assign-player');
+  if(modSel){
+    modSel.innerHTML = '<option value="">Kies speler...</option>';
+    PLAYERS.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p; o.textContent = p;
+      modSel.appendChild(o);
+    });
+  }
+}
+
+function playerLogin(name){
+  currentPlayer = name;
+  isMod = false;
+  document.getElementById('lobby-playername').textContent = name;
+  updateLobbyView();
+  showScreen('lobby');
+}
+
+function modLogin(){
+  const code = document.getElementById('mod-code-input').value.trim();
+  if(code === MOD_CODE){
+    isMod = true;
+    currentPlayer = null;
+    updateModDashboard();
+    showScreen('mod');
+  } else {
+    notify('Verkeerde code!');
+  }
+}
+
+// ═══════════════════════ LOBBY (PLAYER) ═══════════════════════
+
+function updateLobbyView(){
+  if(!currentPlayer) return;
+  document.getElementById('lobby-pasv').textContent = getPlayerPasvragen(currentPlayer);
+
+  const wrap = document.getElementById('lobby-rounds');
+  wrap.innerHTML = '';
+  const rkeys = ['r1','r2','r3','r4'];
+  const rlabels = ['Ronde 1 — Na het aperitief','Ronde 2 — Na de 3 drankjes','Ronde 3 — Na de anekdotes','Slotquiz — Bij dessert'];
+
+  rkeys.forEach((rk, i) => {
+    const unlocked = state.unlockedRounds.includes(rk);
+    const submitted = state.players[currentPlayer]?.submissions?.[rk];
+    const resultReleased = state.resultsReleased?.[rk];
+
+    const card = document.createElement('div');
+    card.className = 'round-card';
+
+    if(!unlocked){
+      card.innerHTML = `<div class="round-header">
+        <span class="round-title" style="color:var(--text3)">${rlabels[i]}</span>
+        <span class="round-locked">🔒 Vergrendeld</span>
+      </div>`;
+    } else if(!submitted){
+      card.innerHTML = `<div class="round-header" style="background:rgba(201,168,76,0.06);border-bottom:1px solid var(--border-strong)">
+        <span class="round-title">${rlabels[i]}</span>
+        <span class="badge badge-gold">Open</span>
+      </div>
+      <div style="padding:12px 16px">
+        <button class="btn btn-primary" onclick="openQuiz('${rk}')">Invullen →</button>
+      </div>`;
+    } else if(!resultReleased){
+      card.innerHTML = `<div class="round-header">
+        <span class="round-title">${rlabels[i]}</span>
+        <span class="badge badge-gray">Wachten...</span>
+      </div>`;
+    } else {
+      const col = state.results?.[rk]?.[currentPlayer] || 'gray';
+      card.innerHTML = `<div class="round-header" style="cursor:pointer" onclick="showResult('${rk}')">
+        <span class="round-title">${rlabels[i]}</span>
+        <span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:${col==='red'?'var(--red-light)':'var(--green-light)'}"></span>
+      </div>`;
+    }
+    wrap.appendChild(card);
+  });
+
+  // Check if any new result is released that hasn't been shown
+  const resultBtn = document.getElementById('lobby-result-btn');
+  resultBtn.innerHTML = '';
+}
+
+// Firebase realtime listener drives all UI updates
+function onStateChanged(){
+  if(currentPlayer) updateLobbyView();
+  if(isMod){ refreshModSubmissions(); renderModRounds(); }
+}
+
+// ═══════════════════════ QUIZ ═══════════════════════
+
+function openQuiz(rk){
+  currentRound = rk;
+  pasvUsed = 0;
+  const round = ROUNDS[rk];
+  document.getElementById('quiz-round-title').textContent = round.label;
+  document.getElementById('quiz-playername').textContent = currentPlayer;
+  const avail = getPlayerPasvragen(currentPlayer);
+  document.getElementById('quiz-pasv-display').textContent = avail;
+
+  // pasvraag selector
+  const sel = document.getElementById('quiz-pasv-selector');
+  if(avail > 0){
+    sel.style.display = 'flex';
+    document.getElementById('pasv-use-num').textContent = '0';
+  } else {
+    sel.style.display = 'none';
+  }
+
+  renderQuestions(round.questions);
+  showScreen('quiz');
+}
+
+function changePasv(delta){
+  const avail = getPlayerPasvragen(currentPlayer);
+  const newVal = Math.max(0, Math.min(2, Math.min(avail, pasvUsed + delta)));
+  pasvUsed = newVal;
+  document.getElementById('pasv-use-num').textContent = pasvUsed;
+
+  // Update skipped state on questions
+  const round = ROUNDS[currentRound];
+  const nonSkippable = round.questions.filter(q=>!q.noPassvraag);
+  // Highlight which questions can be auto-filled
+  updatePasvSkipHighlight(nonSkippable, pasvUsed);
+}
+
+function updatePasvSkipHighlight(nonSkippable, count){
+  // Reset all
+  document.querySelectorAll('.q-item').forEach(el => {
+    el.style.opacity = '1';
+    el.querySelector('.pasv-skip-badge')?.remove();
+  });
+  // We don't pre-select which ones; player fills normally, pasv adds points automatically
+}
+
+function renderQuestions(questions){
+  const wrap = document.getElementById('quiz-questions');
+  wrap.innerHTML = '';
+
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'q-item form-group';
+    div.dataset.qid = q.id;
+
+    const labelEl = document.createElement('label');
+    labelEl.className = 'form-label';
+    labelEl.innerHTML = `<span style="color:var(--gold-dim);margin-right:6px">${i+1}.</span>${q.label}`;
+    if(q.isSchifting) labelEl.innerHTML += ' <span style="color:var(--gold);font-size:11px">(schiftingsvraag)</span>';
+    div.appendChild(labelEl);
+
+    if(q.type === 'dropdown'){
+      const sel = document.createElement('select');
+      sel.name = q.id;
+      sel.innerHTML = '<option value="">— Kies —</option>';
+      q.options.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        sel.appendChild(opt);
+      });
+      div.appendChild(sel);
+    } else if(q.type === 'text'){
+      const inp = document.createElement('input');
+      inp.type = 'text'; inp.name = q.id; inp.placeholder = 'Jouw antwoord...';
+      div.appendChild(inp);
+    } else if(q.type === 'number'){
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.name = q.id; inp.placeholder = '0';
+      div.appendChild(inp);
+    } else if(q.type.startsWith('radio')){
+      const cols = q.type === 'radio2' ? 'cols2' : q.type === 'radio3' ? 'cols3' : 'cols4';
+      const rg = document.createElement('div');
+      rg.className = `radio-group ${cols}`;
+      q.options.forEach(o => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'radio-option';
+        const uid = `${q.id}_${o.replace(/\s+/g,'_')}`;
+        wrapper.innerHTML = `<input type="radio" name="${q.id}" id="${uid}" value="${o}"><label for="${uid}">${o}</label>`;
+        rg.appendChild(wrapper);
+      });
+      div.appendChild(rg);
+    }
+    wrap.appendChild(div);
+  });
+}
+
+function submitQuiz(){
+  const round = ROUNDS[currentRound];
+  const answers = {};
+  let allFilled = true;
+
+  round.questions.forEach(q => {
+    if(q.type.startsWith('radio')){
+      const radios = document.querySelectorAll(`input[type="radio"][name="${q.id}"]`);
+      const checked = Array.from(radios).find(r=>r.checked);
+      if(!checked){ allFilled=false; return; }
+      answers[q.id] = checked.value;
+    } else {
+      const el = document.querySelector(`[name="${q.id}"]`);
+      if(!el){ allFilled=false; return; }
+      const val = el.value.trim();
+      if(!val){ allFilled=false; return; }
+      answers[q.id] = val;
+    }
+  });
+
+  if(!allFilled){
+    notify('Vul alle vragen in!');
+    return;
+  }
+
+  // Save submission
+  if(!state.players[currentPlayer].submissions) state.players[currentPlayer].submissions = {};
+  state.players[currentPlayer].submissions[currentRound] = {
+    answers,
+    pasvragenUsed: pasvUsed,
+    timestamp: Date.now()
+  };
+  saveState();
+
+  // Show waiting screen
+  updateWaitingScreen();
+  showScreen('waiting');
+}
+
+function updateWaitingScreen(){
+  const wrap = document.getElementById('waiting-submissions');
+  const rk = currentRound;
+  const submitted = PLAYERS.filter(p => state.players[p]?.submissions?.[rk]);
+  wrap.innerHTML = `
+    <div class="eyebrow" style="margin-bottom:10px">${submitted.length}/${PLAYERS.length} ingediend</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      ${PLAYERS.map(p => `<span class="badge ${submitted.includes(p)?'badge-green':'badge-gray'}">${p}</span>`).join('')}
+    </div>`;
+}
+
+// ═══════════════════════ RESULT (PLAYER) ═══════════════════════
+
+function showResult(rk){
+  const result = state.results?.[rk]?.[currentPlayer];
+  const isRed = result === 'red';
+  const rnd = ROUNDS[rk];
+  const labelText = rk !== 'r4'
+    ? (isRed ? 'Jij hebt de laagste score van deze ronde.' : 'Je bent veilig deze ronde.')
+    : (isRed ? 'Jij bent uitgeschakeld na de slotquiz.' : 'Gefeliciteerd — je surviveert!');
+
+  // Set static result screen data (shown after reveal)
+  document.getElementById('result-round-label').textContent = rnd.label + ' — ' + rnd.sub;
+  document.getElementById('result-player-name').textContent = currentPlayer;
+  document.getElementById('result-circle-label').textContent = labelText;
+  document.getElementById('result-circle-label').style.opacity = '0';
+  document.getElementById('result-pasv-card').style.opacity = '0';
+  document.getElementById('result-back-btn').style.opacity = '0';
+  const circle = document.getElementById('result-circle');
+  circle.className = 'result-circle';
+  document.getElementById('result-pasv').textContent = getPlayerPasvragen(currentPlayer);
+
+  // Show result screen first (hidden behind overlay)
+  showScreen('result');
+
+  // Start overlay reveal
+  startRevealSequence(rk, isRed, rnd, labelText);
+}
+
+function startRevealSequence(rk, isRed, rnd, labelText){
+  const overlay = document.getElementById('reveal-overlay');
+  const revCircle = document.getElementById('reveal-circle');
+  const revQmark = document.getElementById('reveal-qmark');
+  const countNum = document.getElementById('countdown-num');
+  const arc = document.getElementById('countdown-arc');
+  const timerText = document.getElementById('reveal-timer-text');
+
+  document.getElementById('reveal-round-label').textContent = rnd.label + ' — ' + rnd.sub;
+  document.getElementById('reveal-player-label').textContent = currentPlayer;
+
+  // Reset overlay state
+  revCircle.className = 'result-circle neutral';
+  revCircle.style.width = '180px';
+  revCircle.style.height = '180px';
+  revQmark.style.opacity = '1';
+  revQmark.style.transition = 'opacity .3s';
+  countNum.classList.remove('show');
+  arc.style.strokeDashoffset = '0';
+  arc.style.transition = 'none';
+  timerText.textContent = 'Jouw resultaat wordt onthuld...';
+
+  overlay.classList.add('active');
+
+  let count = 3;
+
+  function tick(){
+    // Show number
+    countNum.textContent = count;
+    countNum.classList.add('show');
+    countNum.style.fontSize = '72px';
+    countNum.style.color = 'var(--gold)';
+
+    // Animate arc: full circle drains over 1s
+    arc.style.transition = 'none';
+    arc.style.strokeDashoffset = '0';
+    // Force reflow
+    arc.getBoundingClientRect();
+    arc.style.transition = 'stroke-dashoffset 1s linear';
+    arc.style.strokeDashoffset = '628';
+
+    // Pulse the number
+    countNum.style.transform = 'translate(-50%,-50%) scale(1.3)';
+    countNum.style.transition = 'transform .15s ease';
+    setTimeout(()=>{
+      countNum.style.transform = 'translate(-50%,-50%) scale(1)';
+    }, 150);
+
+    count--;
+    if(count >= 0){
+      setTimeout(tick, 1050);
+    } else {
+      // Reveal!
+      revealResult(isRed, revCircle, revQmark, countNum, arc, timerText, overlay, labelText);
+    }
+  }
+
+  // Small delay before first tick
+  setTimeout(tick, 400);
+}
+
+function revealResult(isRed, revCircle, revQmark, countNum, arc, timerText, overlay, labelText){
+  // Hide countdown number
+  countNum.classList.remove('show');
+  arc.style.transition = 'none';
+  arc.style.stroke = isRed ? '#E74C3C' : '#2ECC71';
+
+  // Hide question mark
+  revQmark.style.opacity = '0';
+
+  // Flash the circle color
+  setTimeout(()=>{
+    revCircle.className = `result-circle ${isRed?'red':'green'} revealed`;
+    timerText.textContent = labelText;
+    timerText.style.color = isRed ? 'var(--red-light)' : 'var(--green-light)';
+
+    // Vibrate if supported
+    if(navigator.vibrate){
+      navigator.vibrate(isRed ? [80,40,80,40,200] : [100]);
+    }
+  }, 100);
+
+  // Close overlay and transfer to result screen after 2.5s
+  setTimeout(()=>{
+    overlay.classList.remove('active');
+
+    // Now set the actual result screen circle
+    const circle = document.getElementById('result-circle');
+    circle.className = `result-circle ${isRed?'red':'green'} revealed`;
+
+    // Staggered reveal of bottom elements
+    setTimeout(()=>{
+      const lbl = document.getElementById('result-circle-label');
+      lbl.style.transition = 'opacity .5s, transform .5s';
+      lbl.style.opacity = '1';
+      lbl.style.transform = 'translateY(0)';
+    }, 300);
+    setTimeout(()=>{
+      const pcard = document.getElementById('result-pasv-card');
+      pcard.style.transition = 'opacity .5s, transform .5s';
+      pcard.style.opacity = '1';
+    }, 600);
+    setTimeout(()=>{
+      const bbtn = document.getElementById('result-back-btn');
+      bbtn.style.transition = 'opacity .4s';
+      bbtn.style.opacity = '1';
+    }, 900);
+  }, 2500);
+}
+
+function goLobby(){
+  updateLobbyView();
+  showScreen('lobby');
+}
+
+// ═══════════════════════ MOD DASHBOARD ═══════════════════════
+
+function modTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const tabs = ['rounds','scoring','leaderboard'];
+    t.classList.toggle('active', tabs[i]===tab);
+  });
+  document.getElementById('mod-tab-rounds').style.display = tab==='rounds'?'flex':'none';
+  document.getElementById('mod-tab-scoring').style.display = tab==='scoring'?'flex':'none';
+  document.getElementById('mod-tab-leaderboard').style.display = tab==='leaderboard'?'flex':'none';
+  if(tab==='leaderboard') renderLeaderboard();
+  if(tab==='scoring') loadScoringForm();
+}
+
+function updateModDashboard(){
+  renderModRounds();
+  refreshModSubmissions();
+}
+
+function renderModRounds(){
+  const wrap = document.getElementById('mod-rounds-list');
+  wrap.innerHTML = '';
+  const rkeys = ['r1','r2','r3','r4'];
+  const rlabels = ['Ronde 1 — Na het aperitief','Ronde 2 — Na de 3 drankjes','Ronde 3 — Na de anekdotes','Slotquiz — Bij dessert'];
+
+  rkeys.forEach((rk,i) => {
+    const unlocked = state.unlockedRounds.includes(rk);
+    const card = document.createElement('div');
+    card.className = 'round-card';
+    card.innerHTML = `<div class="round-header">
+      <span class="round-title">${rlabels[i]}</span>
+      ${unlocked
+        ? '<span class="badge badge-green">✓ Open</span>'
+        : `<button class="btn btn-secondary btn-sm" style="width:auto;padding:8px 16px" onclick="unlockRound('${rk}')">Ontgrendelen</button>`
+      }
+    </div>`;
+    wrap.appendChild(card);
+  });
+}
+
+function unlockRound(rk){
+  if(!Array.isArray(state.unlockedRounds)) state.unlockedRounds = [];
+  if(!state.unlockedRounds.includes(rk)){
+    state.unlockedRounds = [...state.unlockedRounds, rk];
+    saveState();
+    renderModRounds();
+    notify(`${ROUNDS[rk].label} ontgrendeld!`);
+  }
+}
+
+function refreshModSubmissions(){
+  const wrap = document.getElementById('mod-submission-status');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const rkeys = ['r1','r2','r3','r4'];
+  rkeys.forEach(rk => {
+    if(!state.unlockedRounds.includes(rk)) return;
+    const submitted = PLAYERS.filter(p => state.players[p]?.submissions?.[rk]);
+    const div = document.createElement('div');
+    div.innerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600;letter-spacing:1px;text-transform:uppercase">${ROUNDS[rk].label}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${PLAYERS.map(p => `<span class="badge ${submitted.includes(p)?'badge-green':'badge-gray'}" style="font-size:11px">${p}</span>`).join('')}
+      </div>`;
+    wrap.appendChild(div);
+    if(rk !== 'r4'){const sep = document.createElement('div'); sep.className='divider'; sep.style.margin='8px 0'; wrap.appendChild(sep);}
+  });
+}
+
+function assignPasvragen(){
+  const player = document.getElementById('pasv-assign-player').value;
+  const num = parseInt(document.getElementById('pasv-assign-num').value) || 0;
+  if(!player){ notify('Kies eerst een speler'); return; }
+  state.players[player].pasvragen = (state.players[player].pasvragen || 0) + num;
+  saveState();
+  notify(`+${num} pasvragen voor ${player}`);
+}
+
+// ═══════════════════════ SCORING ═══════════════════════
+
+function loadScoringForm(){
+  const rk = document.getElementById('scoring-round-select').value;
+  const round = ROUNDS[rk];
+  const wrap = document.getElementById('mod-scoring-form');
+  wrap.innerHTML = '';
+
+  // Correct answers form (same structure as player quiz)
+  const title = document.createElement('div');
+  title.innerHTML = `<h3>Correcte antwoorden — ${round.label}</h3>`;
+  wrap.appendChild(title);
+
+  round.questions.forEach((q,i) => {
+    const div = document.createElement('div');
+    div.className = 'form-group';
+    div.dataset.qid = q.id;
+
+    const labelEl = document.createElement('label');
+    labelEl.className = 'form-label';
+    labelEl.innerHTML = `<span style="color:var(--gold-dim);margin-right:6px">${i+1}.</span>${q.label}`;
+    if(q.isSchifting) labelEl.innerHTML += ' <span style="color:var(--gold);font-size:11px">(dichtstbij wint)</span>';
+    div.appendChild(labelEl);
+
+    const existing = state.correctAnswers?.[rk]?.[q.id] || '';
+
+    if(q.type === 'dropdown'){
+      const sel = document.createElement('select');
+      sel.name = 'correct_'+q.id;
+      sel.innerHTML = '<option value="">— Kies —</option>';
+      q.options.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        if(o === existing) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      div.appendChild(sel);
+    } else if(q.type === 'text'){
+      const inp = document.createElement('input');
+      inp.type='text'; inp.name='correct_'+q.id; inp.placeholder='Correct antwoord...'; inp.value=existing;
+      div.appendChild(inp);
+    } else if(q.type === 'number'){
+      const inp = document.createElement('input');
+      inp.type='number'; inp.name='correct_'+q.id; inp.placeholder='0'; inp.value=existing;
+      div.appendChild(inp);
+    } else if(q.type.startsWith('radio')){
+      const cols = q.type==='radio2'?'cols2':q.type==='radio3'?'cols3':'cols4';
+      const rg = document.createElement('div');
+      rg.className = `radio-group ${cols}`;
+      q.options.forEach(o => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'radio-option';
+        const uid = `correct_${q.id}_${o.replace(/\s+/g,'_')}`;
+        wrapper.innerHTML = `<input type="radio" name="correct_${q.id}" id="${uid}" value="${o}" ${o===existing?'checked':''}><label for="${uid}">${o}</label>`;
+        rg.appendChild(wrapper);
+      });
+      div.appendChild(rg);
+    }
+    wrap.appendChild(div);
+  });
+}
+
+function saveCorrectAnswers(){
+  const rk = document.getElementById('scoring-round-select').value;
+  const round = ROUNDS[rk];
+  if(!state.correctAnswers) state.correctAnswers = {};
+  if(!state.correctAnswers[rk]) state.correctAnswers[rk] = {};
+
+  let allSet = true;
+  round.questions.forEach(q => {
+    const isSchifting = q.isSchifting;
+    if(q.type.startsWith('radio')){
+      const radio = document.querySelector(`input[type="radio"][name="correct_${q.id}"]:checked`);
+      if(!radio){ if(!isSchifting) allSet=false; return; }
+      state.correctAnswers[rk][q.id] = radio.value;
+    } else {
+      const el = document.querySelector(`[name="correct_${q.id}"]`);
+      if(!el || !el.value.trim()){
+        if(!isSchifting) allSet=false;
+        return;
+      }
+      state.correctAnswers[rk][q.id] = el.value.trim();
+    }
+  });
+
+  if(!allSet){ notify('Vul alle correcte antwoorden in!'); return; }
+
+  // Calculate scores
+  calculateScores(rk);
+  saveState();
+  notify('Antwoorden opgeslagen en gescoord!');
+}
+
+function calculateScores(rk){
+  const round = ROUNDS[rk];
+  const correct = state.correctAnswers[rk];
+  if(!state.scores) state.scores = {};
+
+  PLAYERS.forEach(p => {
+    const sub = state.players[p]?.submissions?.[rk];
+    if(!state.scores[p]) state.scores[p] = {};
+
+    if(!sub){ state.scores[p][rk] = 0; return; }
+
+    let score = 0;
+    const answers = sub.answers;
+    const pasvUsed = sub.pasvragenUsed || 0;
+
+    // Non-schifting questions
+    const regularQs = round.questions.filter(q => !q.isSchifting);
+    regularQs.forEach((q, i) => {
+      if(q.noPassvraag){
+        // Vraag 1: always score normally
+        const ca = correct[q.id];
+        // For mol question: hardcoded THE_MOLE
+        const molAnswer = THE_MOLE;
+        if(answers[q.id] && answers[q.id] === molAnswer) score++;
+      } else {
+        const ca = correct[q.id];
+        if(answers[q.id] && ca && answers[q.id].toLowerCase() === ca.toLowerCase()) score++;
+      }
+    });
+
+    // Add pasvragen (skip non-mol questions automatically counted as correct)
+    // pasvragen add extra points (simulated as correct answers on top)
+    score += pasvUsed;
+
+    // Schifting metadata stored in scores, not submissions (avoids re-triggering listener)
+
+    state.scores[p][rk] = score;
+  });
+
+  // Handle schifting winner
+  if(rk === 'r4'){
+    const schiftQ = ROUNDS.r4.questions.find(q=>q.isSchifting);
+    if(schiftQ && correct[schiftQ.id]){
+      const correctSec = parseInt(correct[schiftQ.id]);
+      let minDiff = Infinity;
+      let winner = null;
+      PLAYERS.forEach(p => {
+        if(p === THE_MOLE) return; // mol nooit winnaar
+        const sub = state.players[p]?.submissions?.r4;
+        if(!sub) return;
+        const playerSec = parseInt(sub.answers[schiftQ.id]);
+        if(isNaN(playerSec)) return;
+        const diff = Math.abs(playerSec - correctSec);
+        if(diff < minDiff){ minDiff=diff; winner=p; }
+      });
+      if(winner){
+        state.scores[winner].r4 = (state.scores[winner].r4||0) + 1;
+        state.players[winner].submissions.r4.wonSchifting = true;
+      }
+    }
+  }
+}
+
+function sendResults(){
+  const rk = document.getElementById('scoring-round-select').value;
+  if(!state.scores){ notify('Eerst scoren!'); return; }
+  if(!state.results) state.results = {};
+
+  // Mol (THE_MOLE) nooit rood — altijd groen, nooit meegeteld in ranking
+  const eligiblePlayers = PLAYERS.filter(p => p !== THE_MOLE);
+
+  const roundScores = eligiblePlayers.map(p => ({
+    player: p,
+    score: state.scores[p]?.[rk] || 0,
+    ts: state.players[p]?.submissions?.[rk]?.timestamp || Infinity
+  }));
+
+  // Sort ascending by score (index 0 = lowest = red).
+  // Tiebreak: if equal score, LATER submission = lower rank (more likely red).
+  // i.e. earlier submission = safer = higher in ranking = appears later in sorted array.
+  roundScores.sort((a,b) => {
+    if(a.score !== b.score) return a.score - b.score;
+    return b.ts - a.ts;
+  });
+
+  // Iedereen (incl. mol) begint groen
+  state.results[rk] = {};
+  PLAYERS.forEach(p => state.results[rk][p] = 'green');
+
+  if(rk !== 'r4'){
+    // 1 rood (laagste van niet-mol spelers)
+    state.results[rk][roundScores[0].player] = 'red';
+  } else {
+    // 4 rood (4 laagsten van niet-mol spelers)
+    roundScores.slice(0,4).forEach(r => state.results[rk][r.player] = 'red');
+  }
+  // THE_MOLE altijd groen (al ingesteld hierboven, maar expliciet voor zekerheid)
+  state.results[rk][THE_MOLE] = 'green';
+
+  if(!state.resultsReleased) state.resultsReleased = {};
+  state.resultsReleased[rk] = true;
+  saveState();
+  notify('Resultaten verstuurd!');
+}
+
+// ═══════════════════════ LEADERBOARD ═══════════════════════
+
+function renderLeaderboard(){
+  state = loadState();
+  const wrap = document.getElementById('mod-leaderboard-table');
+  const detail = document.getElementById('mod-leaderboard-detail');
+  const rkeys = ['r1','r2','r3','r4'];
+  const rlabels = ['R1','R2','R3','Slot'];
+
+  // Build table
+  let html = `<table class="score-table"><thead><tr>
+    <th>Speler</th>
+    ${rlabels.map(l=>`<th style="text-align:center">${l}</th>`).join('')}
+    <th style="text-align:center">Totaal</th>
+    <th style="text-align:center">Pasv.</th>
+  </tr></thead><tbody>`;
+
+  const totals = PLAYERS.map(p => {
+    const scores = rkeys.map(rk => state.scores?.[p]?.[rk] ?? '—');
+    const total = rkeys.reduce((acc,rk) => {
+      const s = state.scores?.[p]?.[rk];
+      return s !== undefined ? acc+s : acc;
+    }, 0);
+    return {p, scores, total};
+  });
+  totals.sort((a,b)=>b.total-a.total);
+
+  totals.forEach(({p,scores,total}) => {
+    html += `<tr>
+      <td style="font-weight:500">${p}</td>
+      ${scores.map(s=>`<td style="text-align:center">${s}</td>`).join('')}
+      <td class="score-highlight" style="text-align:center">${total}</td>
+      <td style="text-align:center;color:var(--gold)">${state.players[p]?.pasvragen||0}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+
+  // Detail: timestamps
+  detail.innerHTML = '<h3 style="margin-bottom:8px">Indiening tijdstippen</h3>';
+  rkeys.forEach(rk => {
+    if(!state.unlockedRounds.includes(rk)) return;
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.style.marginBottom = '8px';
+    d.innerHTML = `<div style="font-weight:600;margin-bottom:8px;font-size:13px;color:var(--gold)">${ROUNDS[rk].label}</div>` +
+      PLAYERS.map(p => {
+        const ts = state.players[p]?.submissions?.[rk]?.timestamp;
+        const time = ts ? new Date(ts).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
+        return `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border)">
+          <span>${p}</span><span style="color:var(--text2)">${time}</span>
+        </div>`;
+      }).join('');
+    detail.appendChild(d);
+  });
+}
+
+// ═══════════════════════ INIT ═══════════════════════
+
+function init(){
+  initLoginButtons();
+  // loadScoringForm called lazily when mod opens scoring tab
+}
+
+function resetGame(){
+  if(!confirm('Ben je zeker? Dit wist alle antwoorden, scores en rondes.')) return;
+  state = defaultState();
+  saveState();
+  notify('Spel gereset!');
+  renderModRounds();
+  refreshModSubmissions();
+}
+
+async function bootstrap(){
+  // Show loading state
+  document.getElementById('player-buttons').innerHTML = '<div style="text-align:center;color:var(--text2);font-size:14px;padding:20px">Verbinden met server...</div>';
+
+  try {
+    await initFirebase();
+    subscribeToState(() => {
+      onStateChanged();
+    });
+    init();
+  } catch(e) {
+    document.getElementById('player-buttons').innerHTML = '<div style="text-align:center;color:var(--red-light);font-size:14px;padding:20px">Verbinding mislukt. Herlaad de pagina.</div>';
+  }
+}
+
+bootstrap();
+</script>
+
+<!-- FIXED BADGE -->
+<div style="position:fixed;bottom:12px;right:12px;font-size:10px;color:rgba(90,82,72,0.55);letter-spacing:1.2px;text-transform:uppercase;z-index:200;pointer-events:none">app made by indezak</div>
+
+<!-- SPONSOR BAR -->
+<div style="position:fixed;bottom:10px;left:12px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;z-index:200;pointer-events:none">
+  <span style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(90,82,72,0.5)">mede mogelijk gemaakt door</span>
+  <img src="data:image/png;base64,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" style="height:34px;opacity:1;filter:brightness(1.8) saturate(0.6)">
+</div>
+
+</body>
+</html>
