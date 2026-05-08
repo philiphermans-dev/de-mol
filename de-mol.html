@@ -1653,9 +1653,10 @@ function sendResults(){
 // ═══════════════════════ LEADERBOARD ═══════════════════════
 
 function renderLeaderboard(){
-  state = loadState();
+  // state is live via Firebase — geen loadState() nodig
   const wrap = document.getElementById('mod-leaderboard-table');
   const detail = document.getElementById('mod-leaderboard-detail');
+  if(!wrap || !detail) return;
   const rkeys = ['r1','r2','r3','r4'];
   const rlabels = ['R1','R2','R3','Slot'];
 
