@@ -174,6 +174,46 @@ select option{background:var(--bg3)}
 .section-title{display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .section-line{flex:1;height:1px;background:var(--border)}
 
+/* ── RESULT FLASH OVERLAY ── */
+.result-flash{
+  position:fixed;inset:0;z-index:998;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+.result-flash.active{opacity:1;pointer-events:all;}
+.result-flash.red-flash{background:#8B0000;}
+.result-flash.green-flash{background:#0A4020;}
+.result-flash-inner{
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+}
+.result-flash-circle{
+  width:140px;height:140px;border-radius:50%;
+}
+.result-flash.red-flash .result-flash-circle{
+  background:radial-gradient(circle at 38% 32%,#FF6B5B,#8B0000);
+  box-shadow:0 0 60px rgba(231,76,60,0.6);
+}
+.result-flash.green-flash .result-flash-circle{
+  background:radial-gradient(circle at 38% 32%,#4CD97A,#0A4020);
+  box-shadow:0 0 60px rgba(46,204,113,0.5);
+}
+.result-flash-label{
+  font-family:'Playfair Display',serif;
+  font-size:18px;color:#fff;text-align:center;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .4s ease .3s, transform .4s ease .3s;
+}
+.result-flash.active .result-flash-label{opacity:1;transform:translateY(0);}
+@keyframes flashCircleIn{
+  0%{transform:scale(0.3);opacity:0}
+  60%{transform:scale(1.12)}
+  100%{transform:scale(1);opacity:1}
+}
+.result-flash.active .result-flash-circle{
+  animation:flashCircleIn .5s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+
 
 /* ── HOMEPAGE ── */
 .home-container{
@@ -468,6 +508,14 @@ select option{background:var(--bg3)}
     <div id="mod-leaderboard-detail" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 </div>
+<!-- ═══════════════════════ RESULT FLASH ═══════════════════════ -->
+<div id="result-flash" class="result-flash">
+  <div class="result-flash-inner">
+    <div class="result-flash-circle"></div>
+    <div class="result-flash-label" id="result-flash-label"></div>
+  </div>
+</div>
+
 </div><!-- #app -->
 
 <!-- FIXED BADGE (app screens) -->
@@ -501,6 +549,11 @@ const ROUNDS = {
   r2: {
     label: 'Ronde 2',
     sub: 'Na de 3 drankjes',
+    bonusQuestions: [
+      {id:'r2b1', label:'Wie had een afwijkend drankje bij shot 1?', type:'dropdown', options:PLAYERS},
+      {id:'r2b2', label:'Wie had een afwijkend drankje bij shot 2?', type:'dropdown', options:PLAYERS},
+      {id:'r2b3', label:'Wie had een afwijkend drankje bij shot 3?', type:'dropdown', options:PLAYERS},
+    ],
     questions: [
       {id:'r2q1', label:'Wie is de mol?', type:'dropdown', options:PLAYERS, noPassvraag:true},
       {id:'r2q2', label:'Is de mol een man of een vrouw?', type:'radio2', options:['Man','Vrouw']},
@@ -743,9 +796,13 @@ function updateLobbyView(){
       </div>`;
     } else {
       const col = state.results?.[rk]?.[currentPlayer] || 'gray';
-      card.innerHTML = `<div class="round-header" style="cursor:pointer" onclick="showResult('${rk}')">
+      const isRed = col === 'red';
+      card.innerHTML = `<div class="round-header" style="cursor:pointer;background:${isRed?'rgba(192,57,43,0.08)':'rgba(30,132,73,0.08)'}" onclick="showResult('${rk}')">
         <span class="round-title">${rlabels[i]}</span>
-        <span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:${col==='red'?'var(--red-light)':'var(--green-light)'}"></span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${isRed?'var(--red-light)':'var(--green-light)'}"></span>
+          <span style="font-size:12px;color:${isRed?'var(--red-light)':'var(--green-light)'}">${isRed?'Bekijk':'Bekijk'}</span>
+        </div>
       </div>`;
     }
     wrap.appendChild(card);
@@ -756,15 +813,91 @@ function updateLobbyView(){
   resultBtn.innerHTML = '';
 }
 
+// Track which results the player has already seen
+const seenResults = {};
+
 // Firebase realtime listener drives all UI updates
 function onStateChanged(){
-  if(currentPlayer) updateLobbyView();
+  if(currentPlayer){
+    // Check for newly released results
+    const rkeys = ['r1','r2','r3','r4'];
+    rkeys.forEach(rk => {
+      if(state.resultsReleased?.[rk] && !seenResults[rk] && state.players[currentPlayer]?.submissions?.[rk]){
+        seenResults[rk] = true;
+        const col = state.results?.[rk]?.[currentPlayer] || 'green';
+        const isRed = col === 'red';
+        const rnd = ROUNDS[rk];
+        let labelText;
+        if(rk === 'r1' || rk === 'r2'){
+          labelText = isRed ? 'Laagste score van de ronde.' : 'Je bent veilig!';
+        } else if(rk === 'r3'){
+          labelText = isRed ? 'Één van de 2 laagste scores.' : 'Je bent veilig!';
+        } else {
+          labelText = isRed ? 'Uitgeschakeld.' : 'Je surviveert!';
+        }
+        showResultFlash(isRed, labelText, rk);
+      }
+    });
+    updateLobbyView();
+  }
   if(isMod){ refreshModSubmissions(); renderModRounds(); }
+}
+
+function showResultFlash(isRed, labelText, rk){
+  const flash = document.getElementById('result-flash');
+  const label = document.getElementById('result-flash-label');
+  flash.className = 'result-flash ' + (isRed ? 'red-flash' : 'green-flash');
+  label.textContent = labelText;
+  // Vibrate
+  if(navigator.vibrate) navigator.vibrate(isRed ? [80,40,80,40,200] : [100]);
+  // Show
+  requestAnimationFrame(() => {
+    flash.classList.add('active');
+  });
+  // After 3 seconds: fade out, then show result screen
+  setTimeout(() => {
+    flash.style.transition = 'opacity .5s ease';
+    flash.style.opacity = '0';
+    setTimeout(() => {
+      flash.classList.remove('active');
+      flash.style.transition = '';
+      flash.style.opacity = '';
+      showResult(rk);
+    }, 500);
+  }, 3000);
 }
 
 // ═══════════════════════ QUIZ ═══════════════════════
 
 function openQuiz(rk){
+  // Fetch fresh state from Firebase before opening quiz
+  db.ref('gameState').once('value', snap => {
+    const val = snap.val();
+    if(val){
+      state = val;
+      if(!Array.isArray(state.unlockedRounds)) state.unlockedRounds = Object.values(state.unlockedRounds || {});
+      if(!state.players) state.players = {};
+      PLAYERS.forEach(p => {
+        if(!state.players[p]) state.players[p] = {pasvragen:0,submissions:{}};
+        if(!state.players[p].submissions) state.players[p].submissions = {};
+      });
+    }
+    // Now validate with fresh state
+    if(!state.unlockedRounds.includes(rk)){
+      notify('Deze ronde is niet meer open.');
+      setTimeout(() => { updateLobbyView(); showScreen('lobby'); }, 1500);
+      return;
+    }
+    if(state.players[currentPlayer]?.submissions?.[rk]){
+      notify('Je hebt al ingediend voor deze ronde.');
+      setTimeout(() => { updateLobbyView(); showScreen('lobby'); }, 1500);
+      return;
+    }
+    _openQuiz(rk);
+  });
+}
+
+function _openQuiz(rk){
   currentRound = rk;
   pasvUsed = 0;
   const round = ROUNDS[rk];
@@ -782,7 +915,7 @@ function openQuiz(rk){
     sel.style.display = 'none';
   }
 
-  renderQuestions(round.questions);
+  renderQuestions(round.questions, round.bonusQuestions || null);
   showScreen('quiz');
 }
 
@@ -808,9 +941,44 @@ function updatePasvSkipHighlight(nonSkippable, count){
   // We don't pre-select which ones; player fills normally, pasv adds points automatically
 }
 
-function renderQuestions(questions){
+function renderQuestions(questions, bonusQuestions){
   const wrap = document.getElementById('quiz-questions');
   wrap.innerHTML = '';
+
+  // Bonus section (r2 only)
+  if(bonusQuestions && bonusQuestions.length > 0){
+    const bonusSection = document.createElement('div');
+    bonusSection.style.cssText = 'background:rgba(201,168,76,0.06);border:1px solid var(--border-strong);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px';
+    bonusSection.innerHTML = `
+      <div>
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:4px">🎯 Bonusvraag</div>
+        <div style="font-size:13px;color:var(--text2)">Raad alle 3 correct → +1 pasvraag</div>
+      </div>`;
+    bonusQuestions.forEach((q, i) => {
+      const div = document.createElement('div');
+      div.className = 'form-group';
+      div.dataset.qid = q.id;
+      const labelEl = document.createElement('label');
+      labelEl.className = 'form-label';
+      labelEl.innerHTML = `<span style="color:var(--gold-dim);margin-right:6px">${i+1}.</span>${q.label}`;
+      div.appendChild(labelEl);
+      const sel = document.createElement('select');
+      sel.name = q.id;
+      sel.innerHTML = '<option value="">— Kies —</option>';
+      q.options.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        sel.appendChild(opt);
+      });
+      div.appendChild(sel);
+      bonusSection.appendChild(div);
+    });
+    wrap.appendChild(bonusSection);
+    // Divider
+    const div = document.createElement('div');
+    div.className = 'divider';
+    wrap.appendChild(div);
+  }
 
   questions.forEach((q, i) => {
     const div = document.createElement('div');
@@ -859,9 +1027,30 @@ function renderQuestions(questions){
 }
 
 function submitQuiz(){
+  // Hercheck: is de ronde nog steeds ontgrendeld in Firebase?
+  if(!state.unlockedRounds.includes(currentRound)){
+    notify('Deze ronde is niet meer open. Ga terug naar het overzicht.');
+    setTimeout(() => { updateLobbyView(); showScreen('lobby'); }, 1500);
+    return;
+  }
+  // Hercheck: heeft de speler al ingediend (bv. dubbele submit)?
+  if(state.players[currentPlayer]?.submissions?.[currentRound]){
+    notify('Je hebt al ingediend voor deze ronde.');
+    setTimeout(() => { updateLobbyView(); showScreen('lobby'); }, 1500);
+    return;
+  }
   const round = ROUNDS[currentRound];
   const answers = {};
+  const bonusAnswers = {};
   let allFilled = true;
+
+  // Collect bonus answers (r2 only — optional, all 3 needed for pasvraag)
+  if(round.bonusQuestions){
+    round.bonusQuestions.forEach(q => {
+      const el = document.querySelector(`[name="${q.id}"]`);
+      if(el && el.value.trim()) bonusAnswers[q.id] = el.value.trim();
+    });
+  }
 
   round.questions.forEach(q => {
     if(q.type.startsWith('radio')){
@@ -887,6 +1076,7 @@ function submitQuiz(){
   if(!state.players[currentPlayer].submissions) state.players[currentPlayer].submissions = {};
   state.players[currentPlayer].submissions[currentRound] = {
     answers,
+    bonusAnswers,
     pasvragenUsed: pasvUsed,
     timestamp: Date.now()
   };
@@ -914,9 +1104,14 @@ function showResult(rk){
   const result = state.results?.[rk]?.[currentPlayer];
   const isRed = result === 'red';
   const rnd = ROUNDS[rk];
-  const labelText = rk !== 'r4'
-    ? (isRed ? 'Jij hebt de laagste score van deze ronde.' : 'Je bent veilig deze ronde.')
-    : (isRed ? 'Jij bent uitgeschakeld na de slotquiz.' : 'Gefeliciteerd — je surviveert!');
+  let labelText;
+  if(rk === 'r1' || rk === 'r2'){
+    labelText = isRed ? 'Jij hebt de laagste score van deze ronde.' : 'Je bent veilig deze ronde.';
+  } else if(rk === 'r3'){
+    labelText = isRed ? 'Jij bent één van de 2 laagste scores.' : 'Je bent veilig deze ronde.';
+  } else {
+    labelText = isRed ? 'Jij bent uitgeschakeld na de slotquiz.' : 'Gefeliciteerd — je surviveert!';
+  }
 
   // Set static result screen data (shown after reveal)
   document.getElementById('result-round-label').textContent = rnd.label + ' — ' + rnd.sub;
@@ -1154,6 +1349,60 @@ function loadScoringForm(){
   title.innerHTML = `<h3>Correcte antwoorden — ${round.label}</h3>`;
   wrap.appendChild(title);
 
+  // Bonus section for r2
+  if(rk === 'r2'){
+    const bonusDiv = document.createElement('div');
+    bonusDiv.style.cssText = 'background:rgba(201,168,76,0.06);border:1px solid var(--border-strong);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px;margin-bottom:4px';
+    const existingBonus = state.correctAnswers?.r2_bonus || {};
+    bonusDiv.innerHTML = '<div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:600">🎯 Bonusvraag — Afwijkende drankjes</div>';
+    ['r2b1','r2b2','r2b3'].forEach((id, i) => {
+      const label = ['Shot 1','Shot 2','Shot 3'][i];
+      const existing = existingBonus[id] || '';
+      const fg = document.createElement('div');
+      fg.className = 'form-group';
+      fg.innerHTML = '<label class="form-label">Wie had afwijkend drankje bij ' + label + '?</label>';
+      const sel = document.createElement('select');
+      sel.name = 'bonus_' + id;
+      sel.innerHTML = '<option value="">— Kies —</option>';
+      PLAYERS.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        if(o === existing) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      fg.appendChild(sel);
+      bonusDiv.appendChild(fg);
+    });
+    wrap.appendChild(bonusDiv);
+  }
+
+  // Bonus section for r2
+  if(rk === 'r2'){
+    const bonusDiv = document.createElement('div');
+    bonusDiv.style.cssText = 'background:rgba(201,168,76,0.06);border:1px solid var(--border-strong);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px';
+    const existingBonus = state.correctAnswers?.r2_bonus || {};
+    bonusDiv.innerHTML = `<div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:600">🎯 Bonusvraag — Afwijkende drankjes</div>`;
+    ['r2b1','r2b2','r2b3'].forEach((id, i) => {
+      const label = ['Shot 1','Shot 2','Shot 3'][i];
+      const existing = existingBonus[id] || '';
+      const fg = document.createElement('div');
+      fg.className = 'form-group';
+      fg.innerHTML = `<label class="form-label">Wie had afwijkend drankje bij ${label}?</label>`;
+      const sel = document.createElement('select');
+      sel.name = 'bonus_' + id;
+      sel.innerHTML = '<option value="">— Kies —</option>';
+      PLAYERS.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        if(o === existing) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      fg.appendChild(sel);
+      bonusDiv.appendChild(fg);
+    });
+    wrap.appendChild(bonusDiv);
+  }
+
   round.questions.forEach((q,i) => {
     const div = document.createElement('div');
     div.className = 'form-group';
@@ -1209,29 +1458,61 @@ function saveCorrectAnswers(){
   if(!state.correctAnswers) state.correctAnswers = {};
   if(!state.correctAnswers[rk]) state.correctAnswers[rk] = {};
 
-  let allSet = true;
+  // Sla bonus correct antwoorden op voor r2
+  if(rk === 'r2'){
+    if(!state.correctAnswers.r2_bonus) state.correctAnswers.r2_bonus = {};
+    ['r2b1','r2b2','r2b3'].forEach(id => {
+      const el = document.querySelector(`[name="bonus_${id}"]`);
+      if(el && el.value.trim()) state.correctAnswers.r2_bonus[id] = el.value.trim();
+    });
+  }
+
+  // Sla op wat ingevuld is — ook als niet alles ingevuld is
   round.questions.forEach(q => {
-    const isSchifting = q.isSchifting;
     if(q.type.startsWith('radio')){
       const radio = document.querySelector(`input[type="radio"][name="correct_${q.id}"]:checked`);
-      if(!radio){ if(!isSchifting) allSet=false; return; }
-      state.correctAnswers[rk][q.id] = radio.value;
+      if(radio) state.correctAnswers[rk][q.id] = radio.value;
     } else {
       const el = document.querySelector(`[name="correct_${q.id}"]`);
-      if(!el || !el.value.trim()){
-        if(!isSchifting) allSet=false;
-        return;
-      }
-      state.correctAnswers[rk][q.id] = el.value.trim();
+      if(el && el.value.trim()) state.correctAnswers[rk][q.id] = el.value.trim();
     }
   });
 
-  if(!allSet){ notify('Vul alle correcte antwoorden in!'); return; }
-
-  // Calculate scores
   calculateScores(rk);
   saveState();
-  notify('Antwoorden opgeslagen en gescoord!');
+  const filled = Object.keys(state.correctAnswers[rk]).length;
+  const total = round.questions.filter(q => !q.isSchifting).length;
+  notify(`Gescoord! (${filled}/${total} antwoorden ingevuld)`);
+}
+
+// Fuzzy match voor open tekstvragen (kleuren etc.)
+function fuzzyMatch(playerAnswer, correctAnswer){
+  if(!playerAnswer || !correctAnswer) return false;
+  const p = playerAnswer.toLowerCase().trim();
+  const c = correctAnswer.toLowerCase().trim();
+  if(p === c) return true;
+  // Exact substring match (beide kanten)
+  if(p.includes(c) || c.includes(p)) return true;
+  // Kleur varianten mapping
+  const colorGroups = [
+    ['blauw','blue','donkerblauw','lichtblauw','kobaltblauw','marineblauw','navy','azuurblauw','turquoise','koningsblauw'],
+    ['rood','red','donkerrood','lichtrood','bordeaux','bordeauxrood','karmijnrood','robijnrood','scharlaken','crimson'],
+    ['groen','green','donkergroen','lichtgroen','olijfgroen','mosgroen','smaragdgroen','mintgroen','kaki'],
+    ['geel','yellow','donkergeel','lichtgeel','goudgeel','mosterdgeel','citroengeel','okergeel'],
+    ['zwart','black','donker','antraciet','charcoal'],
+    ['wit','white','gebroken wit','ivoorwit','crème','creme','ivoor'],
+    ['grijs','grey','gray','donkergrijs','lichtgrijs','zilvergrijs','antraciet'],
+    ['oranje','orange','donkeroranje','lichtoranje','zalmoranje','terracotta'],
+    ['paars','purple','violet','lila','lavendel','donkerpaars','lichtpaars'],
+    ['roze','pink','lichtroze','donkerroze','fuchsia','salmon','zalm'],
+    ['bruin','brown','donkerbruin','lichtbruin','beige','camel','cognac','taupe','chocolade'],
+    ['goud','gold','gouden','goudkleurig'],
+    ['zilver','silver','zilveren','zilverkleurig'],
+  ];
+  for(const group of colorGroups){
+    if(group.includes(p) && group.includes(c)) return true;
+  }
+  return false;
 }
 
 function calculateScores(rk){
@@ -1260,7 +1541,7 @@ function calculateScores(rk){
         if(answers[q.id] && answers[q.id] === molAnswer) score++;
       } else {
         const ca = correct[q.id];
-        if(answers[q.id] && ca && answers[q.id].toLowerCase() === ca.toLowerCase()) score++;
+        if(answers[q.id] && ca && fuzzyMatch(answers[q.id], ca)) score++;
       }
     });
 
@@ -1270,8 +1551,30 @@ function calculateScores(rk){
 
     // Schifting metadata stored in scores, not submissions (avoids re-triggering listener)
 
+    // Ronde 4 telt dubbel
+    if(rk === 'r4') score = score * 2;
+
     state.scores[p][rk] = score;
   });
+
+  // Handle bonus pasvraag for r2
+  if(rk === 'r2' && state.correctAnswers?.r2_bonus){
+    PLAYERS.forEach(p => {
+      const sub = state.players[p]?.submissions?.r2;
+      if(!sub?.bonusAnswers) return;
+      const bonus = state.correctAnswers.r2_bonus;
+      const allCorrect = ['r2b1','r2b2','r2b3'].every(id =>
+        sub.bonusAnswers[id] && bonus[id] &&
+        sub.bonusAnswers[id] === bonus[id]
+      );
+      if(allCorrect){
+        state.players[p].pasvragen = (state.players[p].pasvragen || 0) + 1;
+        if(!state.bonusWinners) state.bonusWinners = {};
+        if(!state.bonusWinners.r2) state.bonusWinners.r2 = [];
+        if(!state.bonusWinners.r2.includes(p)) state.bonusWinners.r2.push(p);
+      }
+    });
+  }
 
   // Handle schifting winner
   if(rk === 'r4'){
@@ -1299,7 +1602,7 @@ function calculateScores(rk){
 
 function sendResults(){
   const rk = document.getElementById('scoring-round-select').value;
-  if(!state.scores){ notify('Eerst scoren!'); return; }
+  if(!state.scores) state.scores = {};
   if(!state.results) state.results = {};
 
   // Mol (THE_MOLE) nooit rood — altijd groen, nooit meegeteld in ranking
@@ -1323,9 +1626,12 @@ function sendResults(){
   state.results[rk] = {};
   PLAYERS.forEach(p => state.results[rk][p] = 'green');
 
-  if(rk !== 'r4'){
+  if(rk === 'r1' || rk === 'r2'){
     // 1 rood (laagste van niet-mol spelers)
-    state.results[rk][roundScores[0].player] = 'red';
+    roundScores.slice(0,1).forEach(r => state.results[rk][r.player] = 'red');
+  } else if(rk === 'r3'){
+    // 2 rood (2 laagsten van niet-mol spelers)
+    roundScores.slice(0,2).forEach(r => state.results[rk][r.player] = 'red');
   } else {
     // 4 rood (4 laagsten van niet-mol spelers)
     roundScores.slice(0,4).forEach(r => state.results[rk][r.player] = 'red');
@@ -1336,7 +1642,12 @@ function sendResults(){
   if(!state.resultsReleased) state.resultsReleased = {};
   state.resultsReleased[rk] = true;
   saveState();
-  notify('Resultaten verstuurd!');
+  const missing = PLAYERS.filter(p => !state.players[p]?.submissions?.[rk]);
+  if(missing.length > 0){
+    notify(`Resultaten verstuurd! (${missing.length} niet ingediend → score 0)`);
+  } else {
+    notify('Resultaten verstuurd!');
+  }
 }
 
 // ═══════════════════════ LEADERBOARD ═══════════════════════
@@ -1377,8 +1688,31 @@ function renderLeaderboard(){
   html += '</tbody></table>';
   wrap.innerHTML = html;
 
-  // Detail: timestamps
-  detail.innerHTML = '<h3 style="margin-bottom:8px">Indiening tijdstippen</h3>';
+  // Detail: mol stemmen per ronde
+  detail.innerHTML = '<h3 style="margin-bottom:12px">Wie stemden ze als mol?</h3>';
+  rkeys.forEach(rk => {
+    if(!state.unlockedRounds.includes(rk)) return;
+    const molQid = rk+'q1';
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.style.marginBottom = '8px';
+    d.innerHTML = `<div style="font-weight:600;margin-bottom:8px;font-size:13px;color:var(--gold)">${ROUNDS[rk].label}</div>` +
+      PLAYERS.map(p => {
+        const vote = state.players[p]?.submissions?.[rk]?.answers?.[molQid] || '—';
+        const isCorrect = vote === THE_MOLE;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)">
+          <span>${p}</span>
+          <span style="font-weight:500;color:${isCorrect?'var(--green-light)':vote==='—'?'var(--text3)':'var(--text2)'}">${vote}</span>
+        </div>`;
+      }).join('');
+    detail.appendChild(d);
+  });
+
+  // Detail: tijdstippen
+  const tsTitle = document.createElement('h3');
+  tsTitle.style.cssText = 'margin-bottom:8px;margin-top:8px';
+  tsTitle.textContent = 'Indiening tijdstippen';
+  detail.appendChild(tsTitle);
   rkeys.forEach(rk => {
     if(!state.unlockedRounds.includes(rk)) return;
     const d = document.createElement('div');
